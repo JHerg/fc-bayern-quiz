@@ -10,19 +10,20 @@ function playSound(type) {
     gainNode.connect(audioCtx.destination);
     
     if (type === 'correct') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+        osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        osc.frequency.linearRampToValueAtTime(1108.73, audioCtx.currentTime + 0.2); // C#6
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-    } else if (type === 'wrong') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
     }
 }
 
@@ -51,9 +52,42 @@ const questionsPool = [
         question: "Wer erzielte per Kopf das 1:0-Siegtor im Champions-League-Finale 2020 gegen PSG?", 
         answers: [{ text: "Robert Lewandowski", correct: false }, { text: "Serge Gnabry", correct: false }, { text: "Kingsley Coman", correct: true }, { text: "Joshua Kimmich", correct: false }],
         explanation: "Ausgerechnet der in Paris geborene Kingsley Coman köpfte die Bayern nach einer Flanke von Kimmich zum Titel."
+    },
+    {
+        question: "Wer ist der Rekordtorschütze des FC Bayern München in der Bundesliga?",
+        answers: [{ text: "Robert Lewandowski", correct: false }, { text: "Gerd Müller", correct: true }, { text: "Thomas Müller", correct: false }, { text: "Karl-Heinz Rummenigge", correct: false }],
+        explanation: "Der 'Bomber der Nation', Gerd Müller, erzielte unglaubliche 365 Bundesliga-Tore für den FC Bayern."
+    },
+    {
+        question: "In welchem Jahr wurde der FC Bayern München gegründet?",
+        answers: [{ text: "1899", correct: false }, { text: "1900", correct: true }, { text: "1905", correct: false }, { text: "1920", correct: false }],
+        explanation: "Am 27. Februar 1900 wurde der Club im Restaurant 'Gisela' in München gegründet."
+    },
+    {
+        question: "Wie oft gewann der FC Bayern den Europapokal der Landesmeister bzw. die Champions League (Stand 2023)?",
+        answers: [{ text: "4 Mal", correct: false }, { text: "5 Mal", correct: false }, { text: "6 Mal", correct: true }, { text: "7 Mal", correct: false }],
+        explanation: "Der FCB triumphierte 1974, 1975, 1976, 2001, 2013 und 2020 in der Königsklasse."
+    },
+    {
+        question: "Welcher legendäre Spieler und spätere Präsident trug den Spitznamen 'Der Kaiser'?",
+        answers: [{ text: "Uli Hoeneß", correct: false }, { text: "Franz Beckenbauer", correct: true }, { text: "Paul Breitner", correct: false }, { text: "Lothar Matthäus", correct: false }],
+        explanation: "Franz Beckenbauer prägte den deutschen Fußball und den FC Bayern wie kaum ein anderer und wurde als 'Kaiser' weltberühmt."
+    },
+    {
+        question: "Wie heißt das offizielle Maskottchen des FC Bayern München?",
+        answers: [{ text: "Bazi", correct: false }, { text: "Berni", correct: true }, { text: "Bavaria", correct: false }, { text: "Münchi", correct: false }],
+        explanation: "Der Bär 'Berni' ist seit Mai 2004 das Maskottchen und heizt den Fans bei Heimspielen ein."
+    },
+    {
+        question: "Welcher Spieler brach in der Saison 2020/21 den ewigen Torrekord von Gerd Müller mit 41 Treffern?",
+        answers: [{ text: "Harry Kane", correct: false }, { text: "Mario Gómez", correct: false }, { text: "Robert Lewandowski", correct: true }, { text: "Roy Makaay", correct: false }],
+        explanation: "Robert Lewandowski erzielte am letzten Spieltag in der 90. Minute sein 41. Saisontor und sicherte sich den historischen Rekord."
+    },
+    {
+        question: "In welchem Stadion trägt der FC Bayern München seit 2005 seine Heimspiele aus?",
+        answers: [{ text: "Olympiastadion", correct: false }, { text: "Grünwalder Stadion", correct: false }, { text: "Allianz Arena", correct: true }, { text: "Audi Dome", correct: false }],
+        explanation: "Nach vielen Jahren im Olympiastadion zog der FC Bayern zur Saison 2005/06 in die neu erbaute Allianz Arena um."
     }
-    // Kopiere hier einfach deine restlichen 47 Fragen aus deinem alten Code hinein! 
-    // Du kannst optional bei jeder Frage ein 'explanation: "..."' hinzufügen.
 ];
 
 const questionElement = document.getElementById("question");
@@ -75,7 +109,7 @@ const TIME_LIMIT = 15;
 let jokerUsed = false;
 
 // Highscore aus dem lokalen Browser-Speicher laden
-let highscore = localStorage.getItem("bayernHighscore") || 0;
+let highscore = parseInt(localStorage.getItem("bayernHighscore")) || 0;
 highscoreElement.innerText = highscore;
 
 function startQuiz() {
@@ -96,6 +130,7 @@ function startTimer() {
     timeLeft = TIME_LIMIT;
     timerBar.style.width = "100%";
     timerBar.style.backgroundColor = "#28a745"; // Grün
+    timerBar.classList.remove("pulse-alert");
     
     timerInterval = setInterval(() => {
         timeLeft -= 0.1;
@@ -104,6 +139,7 @@ function startTimer() {
 
         if (percentage < 30) {
             timerBar.style.backgroundColor = "#DC052D"; // Rot bei < 30%
+            timerBar.classList.add("pulse-alert");
         }
 
         if (timeLeft <= 0) {
@@ -167,7 +203,7 @@ jokerBtn.addEventListener("click", () => {
     // Zwei zufällige falsche Antworten ausblenden/deaktivieren
     const shuffledWrong = wrongButtons.sort(() => 0.5 - Math.random()).slice(0, 2);
     shuffledWrong.forEach(btn => {
-        btn.style.visibility = "hidden";
+        btn.classList.add("fade-out");
         btn.disabled = true;
     });
 });
@@ -218,6 +254,13 @@ function selectAnswer(e) {
         resultMessage.style.color = "#28a745";
         score++;
         scoreElement.innerText = score;
+
+        // Update highscore immediately during the quiz
+        if (score > highscore) {
+            highscore = score;
+            localStorage.setItem("bayernHighscore", highscore);
+            highscoreElement.innerText = highscore;
+        }
     } else {
         playSound('wrong');
         selectedButton.style.backgroundColor = '#DC052D';
