@@ -190,9 +190,7 @@ function resetState() {
     nextButton.style.display = "none";
     explanationBox.style.display = "none";
     resultMessage.textContent = "";
-    while (answerButtonsElement.firstChild) {
-        answerButtonsElement.removeChild(answerButtonsElement.firstChild);
-    }
+    answerButtonsElement.replaceChildren();
 }
 
 function showExplanation(question) {
