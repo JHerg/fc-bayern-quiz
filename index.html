@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FC Bayern München Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="quote-left" class="quote-box"></div>
+    
+    <div class="quiz-container">
+        <h1>FC Bayern Quiz</h1>
+        <div style="text-align: right; margin-bottom: 15px; font-weight: bold; color: #DC052D;">Punkte: <span id="score">0</span></div>
+        
+        <div id="quiz">
+            <h2 id="question">Frage lädt...</h2>
+            <div id="answer-buttons" class="btn-grid">
+                <!-- Buttons werden per JavaScript generiert -->
+            </div>
+        </div>
+
+        <div id="result-message"></div>
+        <button id="next-btn" class="btn" style="display: none; margin-top: 20px; width: 100%; background-color: #333333; border-color: #333333; color: white;">Nächste Frage</button>
+    </div>
+
+    <div id="quote-right" class="quote-box"></div>
+    <script src="script.js"></script>
+</body>
+</html>
