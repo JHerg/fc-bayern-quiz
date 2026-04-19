@@ -201,7 +201,15 @@ jokerBtn.addEventListener("click", () => {
     const wrongButtons = buttons.filter(btn => btn.dataset.correct !== "true");
     
     // Zwei zufällige falsche Antworten ausblenden/deaktivieren
-    const shuffledWrong = wrongButtons.sort(() => 0.5 - Math.random()).slice(0, 2);
+    let n = wrongButtons.length;
+    const limit = Math.min(2, n);
+    for (let i = 0; i < limit; i++) {
+        const j = i + Math.floor(Math.random() * (n - i));
+        const temp = wrongButtons[i];
+        wrongButtons[i] = wrongButtons[j];
+        wrongButtons[j] = temp;
+    }
+    const shuffledWrong = wrongButtons.slice(0, limit);
     shuffledWrong.forEach(btn => {
         btn.classList.add("fade-out");
         btn.disabled = true;
