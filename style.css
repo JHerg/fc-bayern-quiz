@@ -100,6 +100,15 @@ h2 {
     transition: width 0.1s linear, background-color 0.3s ease;
 }
 
+.pulse-alert {
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; transform: scaleY(1); }
+    100% { opacity: 0.6; transform: scaleY(0.9); }
+}
+
 /* Buttons */
 .btn-grid {
     display: grid;
@@ -122,6 +131,12 @@ h2 {
 .btn:hover:not(:disabled) {
     background-color: #DC052D;
     color: #ffffff;
+}
+
+.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
 }
 
 /* Erklärungs-Box (Trivia) */
@@ -184,6 +199,13 @@ h2 {
 
 /* Responsives Design für Handys */
 @media (max-width: 900px) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+    }
+    .quiz-container {
+        padding: 25px 15px;
+    }
     .quote-box {
         display: none; /* Zitate auf kleinen Bildschirmen ausblenden, damit das Quiz den Fokus hat */
     }
@@ -193,5 +215,13 @@ h2 {
     .tools-header {
         flex-direction: column;
         align-items: stretch;
+    }
+    .btn {
+        padding: 18px;
+        font-size: 1.1rem;
+    }
+    .btn-joker {
+        padding: 15px;
+        font-size: 1.1rem;
     }
 }
