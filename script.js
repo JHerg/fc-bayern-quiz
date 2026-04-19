@@ -296,9 +296,7 @@ function resetState() {
     explanationBox.style.display = "none";
     leaderboardSection.style.display = "none";
     resultMessage.textContent = "";
-    while (answerButtonsElement.firstChild) {
-        answerButtonsElement.removeChild(answerButtonsElement.firstChild);
-    }
+    answerButtonsElement.replaceChildren();
 }
 
 function showExplanation(question) {
