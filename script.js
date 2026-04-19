@@ -151,10 +151,14 @@ function startTimer() {
     timerBar.style.backgroundColor = "#28a745"; // Grün
     timerBar.classList.remove("pulse-alert");
     
-    timerInterval = setInterval(() => {
-        timeLeft -= 0.1;
+    let startTime = performance.now();
+
+    function updateTimer(currentTime) {
+        let elapsed = (currentTime - startTime) / 1000; // in seconds
+        timeLeft = TIME_LIMIT - elapsed;
+
         let percentage = (timeLeft / TIME_LIMIT) * 100;
-        timerBar.style.width = `${percentage}%`;
+        timerBar.style.width = `${Math.max(0, percentage)}%`;
 
         if (percentage < 30) {
             timerBar.style.backgroundColor = "#DC052D"; // Rot bei < 30%
@@ -162,10 +166,15 @@ function startTimer() {
         }
 
         if (timeLeft <= 0) {
-            clearInterval(timerInterval);
+            cancelAnimationFrame(timerInterval);
+            timeLeft = 0;
             timeOut();
+        } else {
+            timerInterval = requestAnimationFrame(updateTimer);
         }
-    }, 100);
+    }
+
+    timerInterval = requestAnimationFrame(updateTimer);
 }
 
 function timeOut() {
@@ -249,7 +258,7 @@ function showRandomQuotes() {
 }
 
 function resetState() {
-    clearInterval(timerInterval);
+    cancelAnimationFrame(timerInterval);
     nextButton.style.display = "none";
     explanationBox.style.display = "none";
     resultMessage.textContent = "";
@@ -266,7 +275,7 @@ function showExplanation(question) {
 }
 
 function selectAnswer(e) {
-    clearInterval(timerInterval); // Timer stoppen
+    cancelAnimationFrame(timerInterval); // Timer stoppen
     
     const selectedButton = e.target;
     const isCorrect = selectedButton.dataset.correct === "true";
