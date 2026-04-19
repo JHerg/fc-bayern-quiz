@@ -3,27 +3,41 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
     
     if (type === 'correct') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
-        osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
-        osc.frequency.linearRampToValueAtTime(1108.73, audioCtx.currentTime + 0.2); // C#6
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        // Fanfare (C4 - E4 - G4 - C5)
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        const times = [0, 0.15, 0.3, 0.45];
+        const duration = 0.4; // Dauer der letzten Note
+
+        notes.forEach((freq, index) => {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.type = 'square'; // Bläser-artiger Klang
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + times[index]);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime + times[index]);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + times[index] + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + times[index] + (index === notes.length - 1 ? duration : 0.15));
+
+            osc.start(audioCtx.currentTime + times[index]);
+            osc.stop(audioCtx.currentTime + times[index] + (index === notes.length - 1 ? duration : 0.15));
+        });
     } else if (type === 'wrong') {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
     }
 }
 
@@ -57,18 +71,18 @@ const bayernQuotes = [
 ];
 
 const questionsPool = [
-    { question: "Wer schoss den Siegtreffer für den FC Bayern im Champions-League-Finale 2013?", answers: [{ text: "Thomas Müller", correct: false }, { text: "Franck Ribéry", correct: false }, { text: "Arjen Robben", correct: true }, { text: "Mario Mandžukić", correct: false }], explanation: "In der 89. Minute spitzelte Arjen Robben den Ball an Roman Weidenfeller vorbei ins Netz und erlöste ganz München." },
-    { question: "Welcher Trainer führte die Bayern 2013 zum ersten Triple der Vereinsgeschichte?", answers: [{ text: "Pep Guardiola", correct: false }, { text: "Jupp Heynckes", correct: true }, { text: "Louis van Gaal", correct: false }, { text: "Carlo Ancelotti", correct: false }], explanation: "Jupp Heynckes krönte seine Karriere mit dem Triple aus Meisterschaft, DFB-Pokal und Champions League, bevor Pep Guardiola übernahm." },
+    { question: "Wer schoss den Siegtreffer für den FC Bayern im Champions-League-Finale 2013?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Arjen_Robben_in_2013.jpg/320px-Arjen_Robben_in_2013.jpg", answers: [{ text: "Thomas Müller", correct: false }, { text: "Franck Ribéry", correct: false }, { text: "Arjen Robben", correct: true }, { text: "Mario Mandžukić", correct: false }], explanation: "In der 89. Minute spitzelte Arjen Robben den Ball an Roman Weidenfeller vorbei ins Netz und erlöste ganz München." },
+    { question: "Welcher Trainer führte die Bayern 2013 zum ersten Triple der Vereinsgeschichte?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Jupp_Heynckes.jpg/320px-Jupp_Heynckes.jpg", answers: [{ text: "Pep Guardiola", correct: false }, { text: "Jupp Heynckes", correct: true }, { text: "Louis van Gaal", correct: false }, { text: "Carlo Ancelotti", correct: false }], explanation: "Jupp Heynckes krönte seine Karriere mit dem Triple aus Meisterschaft, DFB-Pokal und Champions League, bevor Pep Guardiola übernahm." },
     { question: "Wer erzielte per Kopf das 1:0-Siegtor im Champions-League-Finale 2020 gegen PSG?", answers: [{ text: "Robert Lewandowski", correct: false }, { text: "Serge Gnabry", correct: false }, { text: "Kingsley Coman", correct: true }, { text: "Joshua Kimmich", correct: false }], explanation: "Ausgerechnet der in Paris geborene Kingsley Coman köpfte die Bayern nach einer Flanke von Kimmich zum Titel." },
     { question: "Unter welchem Trainer gewann der FC Bayern im Jahr 2020 das historische Sextuple?", answers: [{ text: "Niko Kovač", correct: false }, { text: "Hansi Flick", correct: true }, { text: "Julian Nagelsmann", correct: false }, { text: "Thomas Tuchel", correct: false }], explanation: "Hansi Flick übernahm das Team während der Saison und führte es zu sechs Titeln innerhalb eines Jahres." },
-    { question: "Welcher Spieler brach in der Saison 2020/21 den ewigen Bundesliga-Torrekord mit 41 Treffern?", answers: [{ text: "Robert Lewandowski", correct: true }, { text: "Harry Kane", correct: false }, { text: "Mario Gómez", correct: false }, { text: "Thomas Müller", correct: false }], explanation: "Lewandowski übertraf am letzten Spieltag in der 90. Minute den legendären Rekord von Gerd Müller (40 Tore)." },
+    { question: "Welcher Spieler brach in der Saison 2020/21 den ewigen Bundesliga-Torrekord mit 41 Treffern?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/20180624_FIFA_World_Cup_Group_H_POL_COL_Robert_Lewandowski.jpg/320px-20180624_FIFA_World_Cup_Group_H_POL_COL_Robert_Lewandowski.jpg", answers: [{ text: "Robert Lewandowski", correct: true }, { text: "Harry Kane", correct: false }, { text: "Mario Gómez", correct: false }, { text: "Thomas Müller", correct: false }], explanation: "Lewandowski übertraf am letzten Spieltag in der 90. Minute den legendären Rekord von Gerd Müller (40 Tore)." },
     { question: "Welcher spanische Star-Trainer übernahm den FC Bayern im Sommer 2013?", answers: [{ text: "Luis Enrique", correct: false }, { text: "Unai Emery", correct: false }, { text: "Pep Guardiola", correct: true }, { text: "Xabi Alonso", correct: false }], explanation: "Pep Guardiola kam vom FC Barcelona und prägte den ballbesitzorientierten Fußball in München." },
-    { question: "Aus welchem Land wechselte Harry Kane im Jahr 2023 zum Rekordmeister?", answers: [{ text: "Spanien", correct: false }, { text: "Italien", correct: false }, { text: "England", correct: true }, { text: "Frankreich", correct: false }], explanation: "Harry Kane kam als Kapitän der englischen Nationalmannschaft von Tottenham Hotspur." },
+    { question: "Aus welchem Land wechselte Harry Kane im Jahr 2023 zum Rekordmeister?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Harry_Kane_2018.jpg/320px-Harry_Kane_2018.jpg", answers: [{ text: "Spanien", correct: false }, { text: "Italien", correct: false }, { text: "England", correct: true }, { text: "Frankreich", correct: false }], explanation: "Harry Kane kam als Kapitän der englischen Nationalmannschaft von Tottenham Hotspur." },
     { question: "Wer schoss in der 89. Minute das entscheidende Tor zur Meisterschaft 2023 gegen den 1. FC Köln?", answers: [{ text: "Jamal Musiala", correct: true }, { text: "Leroy Sané", correct: false }, { text: "Leon Goretzka", correct: false }, { text: "Serge Gnabry", correct: false }], explanation: "Mit seinem Last-Minute-Treffer sicherte Musiala den Bayern am letzten Spieltag die Meisterschaft vor dem BVB." },
     { question: "Welcher Bayern-Spieler erzielte 2019 beim 7:2-Sieg gegen Tottenham Hotspur vier Tore?", answers: [{ text: "Robert Lewandowski", correct: false }, { text: "Serge Gnabry", correct: true }, { text: "Thomas Müller", correct: false }, { text: "Kingsley Coman", correct: false }], explanation: "Gnabry lieferte in London eine historische Leistung in der Champions League ab." },
     { question: "Von welchem Verein wechselte Manuel Neuer im Jahr 2011 zum FC Bayern?", answers: [{ text: "Borussia Dortmund", correct: false }, { text: "Werder Bremen", correct: false }, { text: "FC Schalke 04", correct: true }, { text: "VfB Stuttgart", correct: false }], explanation: "Der Wechsel des damaligen Schalke-Kapitäns sorgte zunächst für viele Diskussionen, bevor Neuer zur Legende wurde." },
     { question: "Wer wurde nach der Triple-Saison 2013 zu Europas Fußballer des Jahres gewählt?", answers: [{ text: "Arjen Robben", correct: false }, { text: "Franck Ribéry", correct: true }, { text: "Philipp Lahm", correct: false }, { text: "Bastian Schweinsteiger", correct: false }], explanation: "Franck Ribéry wurde für seine herausragende Saison mit der Auszeichnung geehrt." },
-    { question: "Welcher Bayern-Star prägte für sich selbst den Begriff 'Raumdeuter'?", answers: [{ text: "Thomas Müller", correct: true }, { text: "Mario Götze", correct: false }, { text: "Thiago", correct: false }, { text: "Toni Kroos", correct: false }], explanation: "Müller gab sich diesen Namen, da sein Spielstil stark darauf basiert, freie Räume auf dem Platz zu erkennen." },
+    { question: "Welcher Bayern-Star prägte für sich selbst den Begriff 'Raumdeuter'?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/20180602_FIFA_Friendly_Match_Austria_vs._Germany_Thomas_M%C3%BCller_850_0704.jpg/320px-20180602_FIFA_Friendly_Match_Austria_vs._Germany_Thomas_M%C3%BCller_850_0704.jpg", answers: [{ text: "Thomas Müller", correct: true }, { text: "Mario Götze", correct: false }, { text: "Thiago", correct: false }, { text: "Toni Kroos", correct: false }], explanation: "Müller gab sich diesen Namen, da sein Spielstil stark darauf basiert, freie Räume auf dem Platz zu erkennen." },
     { question: "Von welchem englischen Club kam Jérôme Boateng 2011 nach München?", answers: [{ text: "FC Chelsea", correct: false }, { text: "FC Arsenal", correct: false }, { text: "Manchester United", correct: false }, { text: "Manchester City", correct: true }], explanation: "Boateng wechselte von Manchester City und wurde über Jahre zum Abwehrchef der Bayern." },
     { question: "Über welchen Spieler sagte Pep Guardiola den berühmten Satz: '... oder nix'?", answers: [{ text: "Xabi Alonso", correct: false }, { text: "Thiago", correct: true }, { text: "Javi Martínez", correct: false }, { text: "Arturo Vidal", correct: false }], explanation: "Guardiola forderte bei seinem Amtsantritt vehement die Verpflichtung von Thiago Alcántara." },
     { question: "Wer entschied 2020 das Spitzenspiel gegen den BVB mit einem traumhaften Lupfer aus 20 Metern?", answers: [{ text: "Joshua Kimmich", correct: true }, { text: "Thiago", correct: false }, { text: "Leon Goretzka", correct: false }, { text: "David Alaba", correct: false }], explanation: "Kimmichs spektakulärer Treffer ebnete den Weg zur Meisterschaft unter Hansi Flick." },
@@ -110,6 +124,7 @@ const questionsPool = [
 ];
 
 const questionElement = document.getElementById("question");
+const questionImageElement = document.getElementById("question-image");
 const answerButtonsElement = document.getElementById("answer-buttons");
 const nextButton = document.getElementById("next-btn");
 const resultMessage = document.getElementById("result-message");
@@ -118,6 +133,11 @@ const highscoreElement = document.getElementById("highscore");
 const jokerBtn = document.getElementById("joker-btn");
 const timerBar = document.getElementById("timer-bar");
 const explanationBox = document.getElementById("explanation-box");
+const leaderboardSection = document.getElementById("leaderboard-section");
+const leaderboardList = document.getElementById("leaderboard-list");
+const leaderboardForm = document.getElementById("leaderboard-form");
+const playerNameInput = document.getElementById("player-name");
+const saveScoreBtn = document.getElementById("save-score-btn");
 
 let currentQuestionIndex = 0;
 let score = 0;
@@ -126,6 +146,8 @@ let timerInterval;
 let timeLeft = 15; // 15 Sekunden pro Frage
 const TIME_LIMIT = 15;
 let jokerUsed = false;
+let totalTime = 0;
+let questionStartTime = 0;
 
 // Highscore aus dem lokalen Browser-Speicher laden
 let highscore = parseInt(localStorage.getItem("bayernHighscore")) || 0;
@@ -134,6 +156,7 @@ highscoreElement.innerText = highscore;
 function startQuiz() {
     currentQuestionIndex = 0;
     score = 0;
+    totalTime = 0;
     jokerUsed = false;
     jokerBtn.disabled = false;
     scoreElement.innerText = score;
@@ -169,6 +192,7 @@ function startTimer() {
 }
 
 function timeOut() {
+    totalTime += TIME_LIMIT;
     playSound('wrong');
     resultMessage.textContent = "Zeit abgelaufen!";
     resultMessage.style.color = "#DC052D";
@@ -192,9 +216,18 @@ function timeOut() {
 function showQuestion() {
     resetState();
     startTimer();
+    questionStartTime = Date.now();
     
     let currentQuestion = currentQuizQuestions[currentQuestionIndex];
     questionElement.innerText = currentQuestion.question;
+
+    if (currentQuestion.image) {
+        questionImageElement.src = currentQuestion.image;
+        questionImageElement.style.display = "block";
+    } else {
+        questionImageElement.style.display = "none";
+        questionImageElement.src = "";
+    }
 
     currentQuestion.answers.forEach(answer => {
         const button = document.createElement("button");
@@ -252,6 +285,7 @@ function resetState() {
     clearInterval(timerInterval);
     nextButton.style.display = "none";
     explanationBox.style.display = "none";
+    leaderboardSection.style.display = "none";
     resultMessage.textContent = "";
     while (answerButtonsElement.firstChild) {
         answerButtonsElement.removeChild(answerButtonsElement.firstChild);
@@ -268,6 +302,9 @@ function showExplanation(question) {
 function selectAnswer(e) {
     clearInterval(timerInterval); // Timer stoppen
     
+    let timeTaken = Math.min((Date.now() - questionStartTime) / 1000, TIME_LIMIT);
+    totalTime += timeTaken;
+
     const selectedButton = e.target;
     const isCorrect = selectedButton.dataset.correct === "true";
     const currentQuestion = currentQuizQuestions[currentQuestionIndex];
@@ -344,14 +381,61 @@ function showScore() {
         message = "\"Schwach wie eine Flasche leer!\" Da musst du nochmal ins Trainingslager. 📉";
     }
 
-    questionElement.innerText = `Glückwunsch! Du hast ${score} von ${currentQuizQuestions.length} Punkten erreicht!\n\n${message}`;
+    questionElement.innerText = `Glückwunsch! Du hast ${score} von ${currentQuizQuestions.length} Punkten erreicht!\nBenötigte Zeit: ${totalTime.toFixed(1)} Sekunden\n\n${message}`;
     
     // Tools ausblenden beim Endbildschirm
     document.querySelector('.tools-header').style.display = 'none';
     
+    leaderboardSection.style.display = "block";
+    leaderboardForm.style.display = "block";
+    playerNameInput.value = "";
+    renderLeaderboard();
+
     nextButton.innerText = "Revanche starten";
     nextButton.style.display = "block";
 }
+
+function renderLeaderboard() {
+    const leaderboard = JSON.parse(localStorage.getItem("bayernLeaderboard")) || [];
+    leaderboardList.innerHTML = "";
+
+    leaderboard.forEach(entry => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "5px";
+
+        const strong = document.createElement("strong");
+        strong.textContent = entry.name;
+
+        const textNode = document.createTextNode(` - ${entry.score} Punkte (${entry.time.toFixed(1)}s)`);
+
+        li.appendChild(strong);
+        li.appendChild(textNode);
+
+        leaderboardList.appendChild(li);
+    });
+}
+
+saveScoreBtn.addEventListener("click", () => {
+    const name = playerNameInput.value.trim() || "Anonym";
+    const leaderboard = JSON.parse(localStorage.getItem("bayernLeaderboard")) || [];
+
+    leaderboard.push({ name: name, score: score, time: totalTime });
+
+    // Sortieren: Erst nach Punkten absteigend, dann nach Zeit aufsteigend
+    leaderboard.sort((a, b) => {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        return a.time - b.time;
+    });
+
+    // Top 10 behalten
+    const top10 = leaderboard.slice(0, 10);
+    localStorage.setItem("bayernLeaderboard", JSON.stringify(top10));
+
+    leaderboardForm.style.display = "none";
+    renderLeaderboard();
+});
 
 nextButton.addEventListener("click", () => {
     if (currentQuestionIndex < currentQuizQuestions.length) {
