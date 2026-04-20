@@ -7,10 +7,11 @@ function playSound(type) {
     if (type === 'correct') {
         // Sprachausgabe "Yeah!"
         window.speechSynthesis.cancel(); // Hängengebliebene Ausgaben löschen
-        const utterance = new SpeechSynthesisUtterance('Yeah!');
+        const utterance = new SpeechSynthesisUtterance('Yeeeeaah!!! Woooohooo!!!');
         utterance.lang = 'en-US'; // Englisch für eine energische Aussprache
-        utterance.pitch = 1.5;    // Eine höhere, enthusiastische Stimme
-        utterance.rate = 1.2;     // Etwas schneller
+        utterance.volume = 1.0;
+        utterance.pitch = 1.3;
+        utterance.rate = 1.1;
         window.speechSynthesis.speak(utterance);
     } else if (type === 'wrong') {
         const osc = audioCtx.createOscillator();
