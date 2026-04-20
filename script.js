@@ -26,6 +26,14 @@ function playSound(type) {
             osc.start(audioCtx.currentTime + times[index]);
             osc.stop(audioCtx.currentTime + times[index] + (index === notes.length - 1 ? duration : 0.15));
         });
+
+        // Sprachausgabe "YEAH!"
+        window.speechSynthesis.cancel(); // Hängengebliebene Ausgaben löschen
+        const utterance = new SpeechSynthesisUtterance('YEAH!');
+        utterance.lang = 'en-US'; // Englisch für eine energische Aussprache
+        utterance.pitch = 1.5;    // Eine höhere, enthusiastische Stimme
+        utterance.rate = 1.2;     // Etwas schneller
+        window.speechSynthesis.speak(utterance);
     } else if (type === 'wrong') {
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
@@ -40,9 +48,11 @@ function playSound(type) {
         osc.start(); osc.stop(audioCtx.currentTime + 0.5);
 
         // Sprachausgabe "Loser!"
+        window.speechSynthesis.cancel(); // Hängengebliebene Ausgaben löschen
         const utterance = new SpeechSynthesisUtterance('Loser!');
-        utterance.lang = 'de-DE';
+        utterance.lang = 'en-US'; // Sprache auf Englisch für korrekte Aussprache
         utterance.pitch = 0.5; // Eine etwas tiefere, gemeinere Stimme
+        utterance.rate = 0.9; // Etwas langsamer für den Effekt
         window.speechSynthesis.speak(utterance);
     }
 }
