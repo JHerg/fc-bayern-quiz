@@ -10,20 +10,23 @@
 <body>
     <div id="quote-left" class="quote-box"></div>
     
-    <div class="quiz-container">
+    <div id="start-screen" class="quiz-container">
         <h1>FC Bayern Quiz</h1>
-        
+        <h2>Wähle deine Schwierigkeitsstufe:</h2>
+        <div class="difficulty-buttons">
+            <button class="btn btn-difficulty" onclick="initQuiz('leicht')">🟢 Leicht (Amateur)</button>
+            <button class="btn btn-difficulty" onclick="initQuiz('mittel')">🔵 Mittel (Profi)</button>
+            <button class="btn btn-difficulty" onclick="initQuiz('schwer')">🔴 Schwer (Weltklasse)</button>
+        </div>
+    </div>
+
+    <div id="quiz-container" class="quiz-container" style="display: none;">
         <div class="stats-header">
             <div class="score-board">Punkte: <span id="score">0</span></div>
-            <div class="highscore-board">Highscore: <span id="highscore">0</span></div>
+            <div class="highscore-board">Highscore (<span id="current-diff-display"></span>): <span id="highscore">0</span></div>
         </div>
 
         <div class="tools-header">
-            <select id="difficulty-select" title="Schwierigkeit wählen" style="padding: 10px; border: 2px solid #DC052D; border-radius: 8px; font-weight: bold; color: #DC052D; cursor: pointer; background-color: white;">
-                <option value="leicht">Leicht</option>
-                <option value="mittel" selected>Mittel</option>
-                <option value="schwer">Schwer</option>
-            </select>
             <button id="joker-btn" class="btn-joker" title="50:50 Joker einsetzen">🪄 50:50 Joker</button>
             <div id="timer-bar-container">
                 <div id="timer-bar"></div>
@@ -33,8 +36,7 @@
         <div id="quiz">
             <img id="question-image" src="" alt="Fragen-Bild" style="display: none;">
             <h2 id="question" aria-live="polite">Frage lädt...</h2>
-            <div id="answer-buttons" class="btn-grid">
-                </div>
+            <div id="answer-buttons" class="btn-grid"></div>
         </div>
 
         <div id="result-message" aria-live="polite"></div>
@@ -51,6 +53,7 @@
             </div>
             <ol id="leaderboard-list" style="text-align: left; background: #f8f9fa; padding: 15px 15px 15px 35px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); margin: 0; list-style-position: outside;">
             </ol>
+            <button onclick="location.reload()" class="btn btn-next" style="margin-top: 20px;">Zurück zum Hauptmenü</button>
         </div>
     </div>
 
