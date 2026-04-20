@@ -38,6 +38,12 @@ function playSound(type) {
         gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
         osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+
+        // Sprachausgabe "Loser!"
+        const utterance = new SpeechSynthesisUtterance('Loser!');
+        utterance.lang = 'de-DE';
+        utterance.pitch = 0.5; // Eine etwas tiefere, gemeinere Stimme
+        window.speechSynthesis.speak(utterance);
     }
 }
 
@@ -419,6 +425,7 @@ function showScore() {
     
     if (ratio >= 1) {
         message = "Weltklasse! Du hast die Mia-san-Mia-Mentalität. 🏆";
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#DC052D', '#ffffff', '#004BA0'] });
     } else if (ratio >= 0.7) {
         message = "Starke Leistung! Nur wenige Details haben zum Triple gefehlt. ⚽";
     } else if (ratio >= 0.4) {
