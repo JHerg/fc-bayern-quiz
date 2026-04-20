@@ -5,14 +5,9 @@ function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     
     if (type === 'correct') {
-        // Sprachausgabe "Yeah!"
-        window.speechSynthesis.cancel(); // Hängengebliebene Ausgaben löschen
-        const utterance = new SpeechSynthesisUtterance('Yeeeeaah!!! Woooohooo!!!');
-        utterance.lang = 'en-US'; // Englisch für eine energische Aussprache
-        utterance.volume = 1.0;
-        utterance.pitch = 1.3;
-        utterance.rate = 1.1;
-        window.speechSynthesis.speak(utterance);
+        const jubelSound = new Audio('jubel.mp3');
+        jubelSound.volume = 1.0;
+        jubelSound.play();
     } else if (type === 'wrong') {
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
