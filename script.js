@@ -2,10 +2,9 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    window.speechSynthesis.cancel(); // Stoppt alte Sprachausgaben
+    window.speechSynthesis.cancel(); 
 
     if (type === 'correct') {
-        // Der Gameshow Erfolgssound
         const correctSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
         correctSound.volume = 1.0;
         correctSound.play();
@@ -53,7 +52,6 @@ const bayernQuotes = [
     "„Arjen hat's gemacht!“ – Wolff Fuss"
 ];
 
-// Die 50 Fragen, eingeteilt in leicht, mittel, schwer
 const questionsPool = [
     { difficulty: "leicht", question: "Wer schoss den Siegtreffer für den FC Bayern im Champions-League-Finale 2013?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Arjen_Robben_in_2013.jpg/320px-Arjen_Robben_in_2013.jpg", answers: [{ text: "Thomas Müller", correct: false }, { text: "Franck Ribéry", correct: false }, { text: "Arjen Robben", correct: true }, { text: "Mario Mandžukić", correct: false }], explanation: "In der 89. Minute spitzelte Arjen Robben den Ball an Roman Weidenfeller vorbei ins Netz und erlöste ganz München." },
     { difficulty: "leicht", question: "Welcher Trainer führte die Bayern 2013 zum ersten Triple der Vereinsgeschichte?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Jupp_Heynckes.jpg/320px-Jupp_Heynckes.jpg", answers: [{ text: "Pep Guardiola", correct: false }, { text: "Jupp Heynckes", correct: true }, { text: "Louis van Gaal", correct: false }, { text: "Carlo Ancelotti", correct: false }], explanation: "Jupp Heynckes krönte seine Karriere mit dem Triple aus Meisterschaft, DFB-Pokal und Champions League, bevor Pep Guardiola übernahm." },
@@ -115,6 +113,7 @@ const resultMessage = document.getElementById("result-message");
 const scoreElement = document.getElementById("score");
 const highscoreElement = document.getElementById("highscore");
 const currentDiffDisplay = document.getElementById("current-diff-display");
+const endDiffDisplay = document.getElementById("end-diff-display");
 const jokerBtn = document.getElementById("joker-btn");
 const timerBar = document.getElementById("timer-bar");
 const explanationBox = document.getElementById("explanation-box");
@@ -136,14 +135,14 @@ let totalTime = 0;
 let questionStartTime = 0;
 let highscore = 0;
 
-// Wird vom Startbildschirm aufgerufen
 function initQuiz(difficulty) {
     currentDifficulty = difficulty;
     document.getElementById("start-screen").style.display = "none";
     document.getElementById("quiz-container").style.display = "block";
     
-    // UI Update für den gewählten Schwierigkeitsgrad
-    currentDiffDisplay.innerText = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    let diffName = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    currentDiffDisplay.innerText = diffName;
+    endDiffDisplay.innerText = diffName;
     
     startQuiz();
 }
@@ -157,11 +156,9 @@ function startQuiz() {
     scoreElement.innerText = score;
     nextButton.innerText = "Nächste Frage";
     
-    // Highscore für die gewählte Stufe laden
     highscore = parseInt(localStorage.getItem(`bayernHighscore_${currentDifficulty}`)) || 0;
     highscoreElement.innerText = highscore;
 
-    // Nur Fragen der gewählten Stufe filtern und mischen
     const filteredPool = questionsPool.filter(q => q.difficulty === currentDifficulty);
     const shuffledPool = [...filteredPool].sort(() => 0.5 - Math.random());
     currentQuizQuestions = shuffledPool.slice(0, 10);
@@ -375,7 +372,6 @@ function showScore() {
     
     if (ratio === 1) {
         message = "Weltklasse! Du hast die Mia-san-Mia-Mentalität. 🏆";
-        // Die Konfetti-Kanone bei 100%
         confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#DC052D', '#ffffff', '#004BA0'] });
     } else if (ratio >= 0.7) {
         message = "Starke Leistung! Nur wenige Details haben zum Triple gefehlt. ⚽";
@@ -393,9 +389,6 @@ function showScore() {
     leaderboardForm.style.display = "block";
     playerNameInput.value = "";
     renderLeaderboard();
-
-    nextButton.innerText = "Revanche starten";
-    nextButton.style.display = "none"; // Ausgeblendet, da wir jetzt den Zurück-Button im HTML haben
 }
 
 function renderLeaderboard() {
@@ -445,3 +438,39 @@ nextButton.addEventListener("click", () => {
         handleNextButton();
     }
 });
+
+function renderStartScreenLeaderboards() {
+    const difficulties = ['leicht', 'mittel', 'schwer'];
+    
+    difficulties.forEach(diff => {
+        const listElement = document.getElementById(`start-leaderboard-${diff}`);
+        const storageKey = `bayernLeaderboard_${diff}`;
+        const leaderboard = JSON.parse(localStorage.getItem(storageKey)) || [];
+        
+        listElement.innerHTML = ""; 
+        
+        if (leaderboard.length === 0) {
+            listElement.innerHTML = "<li class='empty-leaderboard'>Noch keine Einträge</li>";
+            return;
+        }
+        
+        const top5 = leaderboard.slice(0, 5);
+        
+        top5.forEach(entry => {
+            const li = document.createElement("li");
+            li.style.marginBottom = "4px";
+            
+            const strong = document.createElement("strong");
+            strong.textContent = entry.name;
+            
+            const textNode = document.createTextNode(` - ${entry.score} Pkt.`);
+            
+            li.appendChild(strong);
+            li.appendChild(textNode);
+            
+            listElement.appendChild(li);
+        });
+    });
+}
+
+renderStartScreenLeaderboards();

@@ -201,7 +201,7 @@ h2 {
     min-height: 200px;
 }
 
-/* NEU: Styles für den Start-Bildschirm */
+/* Styles für den Start-Bildschirm & Buttons */
 .difficulty-buttons {
     display: flex;
     flex-direction: column;
@@ -218,8 +218,49 @@ h2 {
 
 .btn-difficulty:hover {
     transform: scale(1.02);
+    background-color: #DC052D;
+    color: white;
 }
 
+/* Hall of Fame auf dem Startbildschirm */
+.start-leaderboards-section {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.leaderboards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.leaderboard-col h4 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.leaderboard-col ol {
+    text-align: left;
+    background: #f8f9fa;
+    padding: 10px 10px 10px 25px;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    margin: 0;
+    font-size: 0.85rem;
+    min-height: 120px;
+}
+
+.empty-leaderboard {
+    color: #999;
+    font-style: italic;
+    list-style: none;
+    margin-left: -15px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Responsives Design */
 @media (max-width: 900px) {
     body {
         padding: 10px;
@@ -245,5 +286,8 @@ h2 {
     .btn-joker {
         padding: 15px;
         font-size: 1.1rem;
+    }
+    .leaderboards-grid {
+        grid-template-columns: 1fr;
     }
 }

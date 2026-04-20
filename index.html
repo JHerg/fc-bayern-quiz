@@ -13,10 +13,29 @@
     <div id="start-screen" class="quiz-container">
         <h1>FC Bayern Quiz</h1>
         <h2>Wähle deine Schwierigkeitsstufe:</h2>
+        
         <div class="difficulty-buttons">
             <button class="btn btn-difficulty" onclick="initQuiz('leicht')">🟢 Leicht (Amateur)</button>
             <button class="btn btn-difficulty" onclick="initQuiz('mittel')">🔵 Mittel (Profi)</button>
             <button class="btn btn-difficulty" onclick="initQuiz('schwer')">🔴 Schwer (Weltklasse)</button>
+        </div>
+
+        <div class="start-leaderboards-section">
+            <h3 style="color: #DC052D; margin-top: 30px; margin-bottom: 15px;">🏆 Hall of Fame (Top 5) 🏆</h3>
+            <div class="leaderboards-grid">
+                <div class="leaderboard-col">
+                    <h4>🟢 Leicht</h4>
+                    <ol id="start-leaderboard-leicht"></ol>
+                </div>
+                <div class="leaderboard-col">
+                    <h4>🔵 Mittel</h4>
+                    <ol id="start-leaderboard-mittel"></ol>
+                </div>
+                <div class="leaderboard-col">
+                    <h4>🔴 Schwer</h4>
+                    <ol id="start-leaderboard-schwer"></ol>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -40,13 +59,12 @@
         </div>
 
         <div id="result-message" aria-live="polite"></div>
-        
         <div id="explanation-box" class="explanation-box"></div>
 
         <button id="next-btn" class="btn btn-next" style="display: none;">Nächste Frage</button>
 
         <div id="leaderboard-section" style="display: none; margin-top: 30px;">
-            <h2 style="color: #DC052D;">🏆 Bestenliste</h2>
+            <h2 style="color: #DC052D;">🏆 Bestenliste (<span id="end-diff-display"></span>)</h2>
             <div id="leaderboard-form" style="margin-bottom: 15px;">
                 <input type="text" id="player-name" placeholder="Dein Name" maxlength="15" style="padding: 10px; border: 2px solid #DC052D; border-radius: 8px; width: 60%; margin-right: 10px;">
                 <button id="save-score-btn" class="btn" style="padding: 10px 15px; width: auto;">Speichern</button>
