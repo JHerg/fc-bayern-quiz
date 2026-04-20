@@ -141,6 +141,7 @@ const saveScoreBtn = document.getElementById("save-score-btn");
 
 let currentQuestionIndex = 0;
 let score = 0;
+let currentStreak = 0;
 let currentQuizQuestions = [];
 let timerInterval;
 let timeLeft = 15; // 15 Sekunden pro Frage
@@ -153,13 +154,35 @@ let questionStartTime = 0;
 let highscore = parseInt(localStorage.getItem("bayernHighscore")) || 0;
 highscoreElement.innerText = highscore;
 
+function updateScoreDisplay() {
+    scoreElement.innerText = score;
+    let streakDisplay = document.getElementById("streak-display");
+    if (!streakDisplay) {
+        streakDisplay = document.createElement("span");
+        streakDisplay.id = "streak-display";
+        streakDisplay.style.marginLeft = "10px";
+        streakDisplay.style.fontWeight = "bold";
+        streakDisplay.style.color = "#ffaa00";
+        scoreElement.after(streakDisplay);
+    }
+    
+    if (currentStreak >= 3) {
+        streakDisplay.innerText = `🔥 ${currentStreak}x Combo! (2x Punkte)`;
+    } else if (currentStreak > 0) {
+        streakDisplay.innerText = `🔥 ${currentStreak}x`;
+    } else {
+        streakDisplay.innerText = "";
+    }
+}
+
 function startQuiz() {
     currentQuestionIndex = 0;
     score = 0;
+    currentStreak = 0;
     totalTime = 0;
     jokerUsed = false;
     jokerBtn.disabled = false;
-    scoreElement.innerText = score;
+    updateScoreDisplay();
     nextButton.innerText = "Nächste Frage";
     
     const shuffledPool = [...questionsPool].sort(() => 0.5 - Math.random());
@@ -206,9 +229,15 @@ function timeOut() {
     resultMessage.textContent = "Zeit abgelaufen!";
     resultMessage.style.color = "#DC052D";
     
+    currentStreak = 0;
+    updateScoreDisplay();
+    
+    const currentQuestion = currentQuizQuestions[currentQuestionIndex];
+
     // Deaktiviere Buttons und zeige richtige Antwort
     Array.from(answerButtonsElement.children).forEach(button => {
-        if (button.dataset.correct === "true") {
+        const idx = parseInt(button.dataset.index, 10);
+        if (currentQuestion.answers[idx].correct) {
             button.style.backgroundColor = '#28a745';
             button.style.borderColor = '#28a745';
             button.style.color = '#ffffff';
@@ -238,13 +267,11 @@ function showQuestion() {
         questionImageElement.src = "";
     }
 
-    currentQuestion.answers.forEach(answer => {
+    currentQuestion.answers.forEach((answer, index) => {
         const button = document.createElement("button");
         button.innerText = answer.text;
         button.classList.add("btn");
-        if (answer.correct) {
-            button.dataset.correct = answer.correct;
-        }
+        button.dataset.index = index;
         button.addEventListener("click", selectAnswer);
         answerButtonsElement.appendChild(button);
     });
@@ -258,8 +285,12 @@ jokerBtn.addEventListener("click", () => {
     jokerUsed = true;
     jokerBtn.disabled = true;
     
+    const currentQuestion = currentQuizQuestions[currentQuestionIndex];
     const buttons = Array.from(answerButtonsElement.children);
-    const wrongButtons = buttons.filter(btn => btn.dataset.correct !== "true");
+    const wrongButtons = buttons.filter(btn => {
+        const idx = parseInt(btn.dataset.index, 10);
+        return !currentQuestion.answers[idx].correct;
+    });
     
     // Zwei zufällige falsche Antworten ausblenden/deaktivieren
     let n = wrongButtons.length;
@@ -313,8 +344,9 @@ function selectAnswer(e) {
     totalTime += timeTaken;
 
     const selectedButton = e.target;
-    const isCorrect = selectedButton.dataset.correct === "true";
+    const idx = parseInt(selectedButton.dataset.index, 10);
     const currentQuestion = currentQuizQuestions[currentQuestionIndex];
+    const isCorrect = currentQuestion.answers[idx].correct;
     
     if (isCorrect) {
         playSound('correct');
@@ -323,8 +355,11 @@ function selectAnswer(e) {
         selectedButton.style.color = '#ffffff';
         resultMessage.textContent = "Richtig! Toll gemacht!";
         resultMessage.style.color = "#28a745";
-        score++;
-        scoreElement.innerText = score;
+        
+        currentStreak++;
+        const points = currentStreak >= 3 ? 2 : 1;
+        score += points;
+        updateScoreDisplay();
 
         // Update highscore immediately during the quiz
         if (score > highscore) {
@@ -338,11 +373,15 @@ function selectAnswer(e) {
         selectedButton.style.color = '#ffffff';
         resultMessage.textContent = "Leider falsch!";
         resultMessage.style.color = "#DC052D";
+        
+        currentStreak = 0;
+        updateScoreDisplay();
     }
 
     // Alle Buttons deaktivieren
     Array.from(answerButtonsElement.children).forEach(button => {
-        if (button.dataset.correct === "true" && !isCorrect) {
+        const buttonIdx = parseInt(button.dataset.index, 10);
+        if (currentQuestion.answers[buttonIdx].correct && !isCorrect) {
             button.style.backgroundColor = '#28a745';
             button.style.borderColor = '#28a745';
             button.style.color = '#ffffff';
@@ -378,7 +417,7 @@ function showScore() {
     let message = "";
     let ratio = score / currentQuizQuestions.length;
     
-    if (ratio === 1) {
+    if (ratio >= 1) {
         message = "Weltklasse! Du hast die Mia-san-Mia-Mentalität. 🏆";
     } else if (ratio >= 0.7) {
         message = "Starke Leistung! Nur wenige Details haben zum Triple gefehlt. ⚽";
