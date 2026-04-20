@@ -5,9 +5,13 @@ function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     
     if (type === 'correct') {
-        const jubelSound = new Audio('jubel.mp3');
-        jubelSound.volume = 1.0;
-        jubelSound.play();
+        // Vorherige Sprachausgaben sicherheitshalber stoppen
+        window.speechSynthesis.cancel();
+
+        // Klassischer Gameshow Erfolgssound
+        const correctSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
+        correctSound.volume = 1.0;
+        correctSound.play();
     } else if (type === 'wrong') {
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
