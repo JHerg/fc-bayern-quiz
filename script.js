@@ -5,31 +5,9 @@ function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     
     if (type === 'correct') {
-        // Fanfare (C4 - E4 - G4 - C5)
-        const notes = [261.63, 329.63, 392.00, 523.25];
-        const times = [0, 0.15, 0.3, 0.45];
-        const duration = 0.4; // Dauer der letzten Note
-
-        notes.forEach((freq, index) => {
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            osc.type = 'square'; // Bläser-artiger Klang
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + times[index]);
-
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime + times[index]);
-            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + times[index] + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + times[index] + (index === notes.length - 1 ? duration : 0.15));
-
-            osc.start(audioCtx.currentTime + times[index]);
-            osc.stop(audioCtx.currentTime + times[index] + (index === notes.length - 1 ? duration : 0.15));
-        });
-
-        // Sprachausgabe "YEAH!"
+        // Sprachausgabe "Yeah!"
         window.speechSynthesis.cancel(); // Hängengebliebene Ausgaben löschen
-        const utterance = new SpeechSynthesisUtterance('YEAH!');
+        const utterance = new SpeechSynthesisUtterance('Yeah!');
         utterance.lang = 'en-US'; // Englisch für eine energische Aussprache
         utterance.pitch = 1.5;    // Eine höhere, enthusiastische Stimme
         utterance.rate = 1.2;     // Etwas schneller
