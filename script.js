@@ -1,5 +1,10 @@
 import { questionsPool } from './questions.js';
 
+// --- SUPABASE SETUP ---
+const supabaseUrl = 'https://ppntaxnhwvkrdrriedlv.supabase.co';
+const supabaseKey = 'sb_publishable_LvAgE6-B78p4qJ3sCK1YeQ_oCShrJMy';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 // --- AUDIO SETUP ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -11,7 +16,6 @@ function playSound(type) {
         const s = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
         s.volume = 0.6; s.play();
     } else if (type === 'wrong') {
-        // Tiefer Synthesizer-Ton
         const osc = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         osc.connect(g); g.connect(audioCtx.destination);
@@ -19,7 +23,6 @@ function playSound(type) {
         g.gain.setValueAtTime(0.2, audioCtx.currentTime);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 
-        // Die "Loser!" Sprachausgabe
         const u = new SpeechSynthesisUtterance('Loser!');
         u.lang = 'en-US'; u.pitch = 0.5; u.rate = 0.8;
         window.speechSynthesis.speak(u);
@@ -54,6 +57,7 @@ function startQuiz() {
     jBtn.disabled = false; jBtn.style.opacity = "1";
     document.getElementById("score").innerText = score;
     
+    // Highscore bleibt lokal als persönlicher Rekord
     highscore = parseInt(localStorage.getItem(`${STORAGE_PREFIX}Highscore_${currentDifficulty}`)) || 0;
     document.getElementById("highscore").innerText = highscore;
 
@@ -66,13 +70,11 @@ function startQuiz() {
 function showQuestion() {
     resetState();
     
-    // Animation triggern
     const qBox = document.getElementById("quiz");
     qBox.classList.remove("question-slide-in");
-    void qBox.offsetWidth; // Reflow für Neustart der Animation
+    void qBox.offsetWidth; 
     qBox.classList.add("question-slide-in");
 
-    // Progress Bar aktualisieren
     const progress = (currentQuestionIndex / currentQuizQuestions.length) * 100;
     document.getElementById("progress-bar-fill").style.width = `${progress}%`;
 
@@ -112,7 +114,6 @@ function startTimer() {
         let perc = Math.max(0, (timeLeft / 15) * 100);
         bar.style.width = `${perc}%`;
 
-        // Panik-Modus bei < 5 Sekunden
         if (perc < 33) {
             bar.style.backgroundColor = "#DC052D";
             document.body.classList.add("timer-urgent");
@@ -146,13 +147,13 @@ function selectAnswer(e) {
 
     if (isC) { 
         playSound('correct'); 
-        if (navigator.vibrate) navigator.vibrate(50); // Kurz vibrieren
+        if (navigator.vibrate) navigator.vibrate(50); 
         b.style.background = '#28a745'; b.style.color = '#fff'; 
         score++; document.getElementById("score").innerText = score; 
     }
     else { 
         playSound('wrong'); 
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Doppelt vibrieren
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
         b.style.background = '#DC052D'; b.style.color = '#fff'; 
     }
     revealAnswer();
@@ -190,7 +191,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
     }
 });
 
-// --- FINALE & RÄNGE ---
+// --- FINALE & CLOUD BESTENLISTE ---
 function showScore() {
     document.getElementById("quiz").style.display = "none";
     document.querySelector(".tools-header").style.display = "none";
@@ -199,7 +200,6 @@ function showScore() {
 
     if (score > highscore) localStorage.setItem(`${STORAGE_PREFIX}Highscore_${currentDifficulty}`, score);
     
-    // Gamification: Ränge vergeben
     let rankTitle = "", rankColor = "";
     if (score === 10) {
         rankTitle = "🏆 TRIPLE-SIEGER / LEGENDE"; rankColor = "#FFD700";
@@ -222,28 +222,71 @@ function showScore() {
     renderLeaderboard();
 }
 
-function renderLeaderboard() {
+// Top 5 aus der Cloud laden
+async function renderLeaderboard() {
     const l = document.getElementById("leaderboard-list");
-    const data = JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}Leaderboard_${currentDifficulty}`)) || [];
-    l.innerHTML = data.map(e => `<li><strong>${e.name}</strong>: ${e.score} Pkt.</li>`).join("");
+    l.innerHTML = "<li>Lade weltweite Bestenliste...</li>";
+
+    const { data, error } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .eq('difficulty', currentDifficulty)
+        .order('score', { ascending: false })
+        .order('time', { ascending: true })
+        .limit(5);
+
+    if (error) {
+        l.innerHTML = "<li>Fehler beim Laden :(</li>";
+        return;
+    }
+
+    l.innerHTML = data.map(e => `<li><strong>${e.name}</strong>: ${e.score} Pkt. <small>(${e.time.toFixed(1)}s)</small></li>`).join("");
 }
 
-document.getElementById("save-score-btn").addEventListener("click", () => {
-    const name = document.getElementById("player-name").value || "Anonym";
-    let data = JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}Leaderboard_${currentDifficulty}`)) || [];
-    data.push({ name, score, time: totalTime });
-    data.sort((a,b) => b.score - a.score || a.time - b.time).splice(5);
-    localStorage.setItem(`${STORAGE_PREFIX}Leaderboard_${currentDifficulty}`, JSON.stringify(data));
-    document.getElementById("leaderboard-form").style.display = "none";
-    renderLeaderboard();
+// In der Cloud speichern
+document.getElementById("save-score-btn").addEventListener("click", async () => {
+    const nameInput = document.getElementById("player-name");
+    const name = nameInput.value.trim() || "Anonym";
+    
+    const btn = document.getElementById("save-score-btn");
+    btn.disabled = true;
+    btn.innerText = "Wird gespeichert...";
+
+    const { error } = await supabase
+        .from('leaderboard')
+        .insert([{ 
+            name: name, 
+            score: score, 
+            time: totalTime, 
+            difficulty: currentDifficulty 
+        }]);
+
+    if (error) {
+        alert("Fehler beim Cloud-Speichern!");
+        btn.disabled = false;
+        btn.innerText = "Speichern";
+    } else {
+        document.getElementById("leaderboard-form").style.display = "none";
+        renderLeaderboard();
+    }
 });
 
-function renderStart() {
-    ['leicht', 'mittel', 'schwer'].forEach(d => {
-        const l = document.getElementById(`start-leaderboard-${d}`);
-        const data = JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}Leaderboard_${d}`)) || [];
-        l.innerHTML = data.map(e => `<li>${e.name}: ${e.score}</li>`).join("") || "<li>-</li>";
-    });
+// Startbildschirm mit echten Cloud-Daten befüllen
+async function renderStart() {
+    const diffs = ['leicht', 'mittel', 'schwer'];
+    for (const d of diffs) {
+        const list = document.getElementById(`start-leaderboard-${d}`);
+        const { data, error } = await supabase
+            .from('leaderboard')
+            .select('name, score')
+            .eq('difficulty', d)
+            .order('score', { ascending: false })
+            .limit(3);
+
+        if (!error && data) {
+            list.innerHTML = data.map(e => `<li>${e.name}: ${e.score}</li>`).join("") || "<li>Noch leer</li>";
+        }
+    }
 }
 
 renderStart();
