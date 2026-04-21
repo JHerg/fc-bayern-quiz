@@ -178,13 +178,19 @@ function selectAnswer(e) {
 
     if (isCorrect) {
         playSound('correct');
+        // --- NEU: Vibration bei Richtig ---
+        if (navigator.vibrate) navigator.vibrate(50); 
+        
         selectedButton.style.backgroundColor = '#28a745';
         selectedButton.style.borderColor = '#28a745';
         selectedButton.style.color = '#fff';
         score++;
         scoreElement.innerText = score;
     } else {
-        playSound('wrong'); // Hier wird das "Loser!" getriggert
+        playSound('wrong');
+        // --- NEU: Vibration bei Falsch ---
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+
         selectedButton.style.backgroundColor = '#DC052D';
         selectedButton.style.borderColor = '#DC052D';
         selectedButton.style.color = '#fff';
