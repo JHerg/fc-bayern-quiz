@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>München Fußball Fan-Quiz</title>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div class="bg-glow"></div>
@@ -23,11 +24,11 @@
                 💡 Privates Fan-Projekt. Keine offizielle Verbindung zu einem Verein.
             </div>
         </header>
-        
+
         <div class="difficulty-buttons">
-            <button class="btn-diff leicht" onclick="initQuiz('leicht')"><span>🟢</span> Amateur</button>
-            <button class="btn-diff mittel" onclick="initQuiz('mittel')"><span>🔵</span> Profi</button>
-            <button class="btn-diff schwer" onclick="initQuiz('schwer')"><span>🔴</span> Weltklasse</button>
+            <button class="btn-diff leicht" data-diff="leicht"><span>🟢</span> Amateur</button>
+            <button class="btn-diff mittel" data-diff="mittel"><span>🔵</span> Profi</button>
+            <button class="btn-diff schwer" data-diff="schwer"><span>🔴</span> Weltklasse</button>
         </div>
 
         <div class="start-leaderboards-section">
@@ -65,10 +66,10 @@
                 <div id="timer-bar"></div>
             </div>
         </div>
-        
+
         <div id="quiz">
             <div class="question-box">
-                <img id="question-image" src="" alt="Frage" style="display: none;">
+                <img id="question-image" src="" alt="Fragebild" style="display: none;" />
                 <h2 id="question">Frage lädt...</h2>
             </div>
             <div id="answer-buttons" class="btn-grid"></div>
@@ -83,16 +84,15 @@
                 <h2 id="final-result-text">Ergebnis</h2>
             </div>
             <div id="leaderboard-form">
-                <input type="text" id="player-name" placeholder="Dein Name" maxlength="15">
+                <input type="text" id="player-name" placeholder="Dein Name" maxlength="15" />
                 <button id="save-score-btn" class="btn-save">Speichern</button>
             </div>
             <ol id="leaderboard-list" class="styled-list"></ol>
-            <button onclick="location.reload()" class="btn-restart">Zum Hauptmenü</button>
+            <button id="restart-btn" class="btn-restart">Zum Hauptmenü</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script type="module" src="script.js"></script>
 </body>
 </html>
