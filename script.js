@@ -1,6 +1,6 @@
 import { questionsPool } from './questions.js';
 
-// --- AUDIO ---
+// --- AUDIO SETUP ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -9,8 +9,9 @@ function playSound(type) {
 
     if (type === 'correct') {
         const s = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
-        s.volume = 0.7; s.play();
+        s.volume = 0.6; s.play();
     } else if (type === 'wrong') {
+        // Tiefer Synthesizer-Ton
         const osc = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         osc.connect(g); g.connect(audioCtx.destination);
@@ -18,17 +19,28 @@ function playSound(type) {
         g.gain.setValueAtTime(0.2, audioCtx.currentTime);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 
+        // Die "Loser!" Sprachausgabe
         const u = new SpeechSynthesisUtterance('Loser!');
         u.lang = 'en-US'; u.pitch = 0.5; u.rate = 0.8;
         window.speechSynthesis.speak(u);
     }
 }
 
-// --- STATE ---
-let currentDifficulty = 'leicht', currentQuestionIndex = 0, score = 0, currentQuizQuestions = [], timerInterval, timeLeft = 15, jokerUsed = false, totalTime = 0, questionStartTime = 0, highscore = 0;
+// --- VARIABLEN & STATE ---
+let currentDifficulty = 'leicht', 
+    currentQuestionIndex = 0, 
+    score = 0, 
+    currentQuizQuestions = [], 
+    timerInterval, 
+    timeLeft = 15, 
+    jokerUsed = false, 
+    totalTime = 0, 
+    questionStartTime = 0, 
+    highscore = 0;
+
 const STORAGE_PREFIX = 'muenchenFanQuiz_';
 
-// --- INIT ---
+// --- INITIALISIERUNG ---
 function initQuiz(d) {
     currentDifficulty = d;
     document.getElementById("start-screen").style.display = "none";
@@ -41,24 +53,26 @@ function startQuiz() {
     const jBtn = document.getElementById("joker-btn");
     jBtn.disabled = false; jBtn.style.opacity = "1";
     document.getElementById("score").innerText = score;
+    
     highscore = parseInt(localStorage.getItem(`${STORAGE_PREFIX}Highscore_${currentDifficulty}`)) || 0;
     document.getElementById("highscore").innerText = highscore;
+
     const pool = questionsPool.filter(q => q.difficulty === currentDifficulty);
     currentQuizQuestions = [...pool].sort(() => 0.5 - Math.random()).slice(0, 10);
     showQuestion();
 }
 
-// --- LOGIK ---
+// --- CORE LOGIK ---
 function showQuestion() {
     resetState();
     
     // Animation triggern
     const qBox = document.getElementById("quiz");
     qBox.classList.remove("question-slide-in");
-    void qBox.offsetWidth; 
+    void qBox.offsetWidth; // Reflow für Neustart der Animation
     qBox.classList.add("question-slide-in");
 
-    // Progress Bar
+    // Progress Bar aktualisieren
     const progress = (currentQuestionIndex / currentQuizQuestions.length) * 100;
     document.getElementById("progress-bar-fill").style.width = `${progress}%`;
 
@@ -66,6 +80,7 @@ function showQuestion() {
     questionStartTime = Date.now();
     let q = currentQuizQuestions[currentQuestionIndex];
     document.getElementById("question").innerText = q.question;
+    
     const img = document.getElementById("question-image");
     if (q.image) { img.src = q.image; img.style.display = "block"; } else { img.style.display = "none"; }
     
@@ -90,14 +105,15 @@ function resetState() {
 function startTimer() {
     let start = performance.now();
     const bar = document.getElementById("timer-bar");
+    
     function up(time) {
         let elapsed = (time - start) / 1000;
         timeLeft = 15 - elapsed;
-        let perc = Math.max(0, (timeLeft/15)*100);
+        let perc = Math.max(0, (timeLeft / 15) * 100);
         bar.style.width = `${perc}%`;
 
-        // Panik-Modus bei < 5 Sek (30%)
-        if (perc < 30) {
+        // Panik-Modus bei < 5 Sekunden
+        if (perc < 33) {
             bar.style.backgroundColor = "#DC052D";
             document.body.classList.add("timer-urgent");
         } else {
@@ -114,23 +130,29 @@ function startTimer() {
     timerInterval = requestAnimationFrame(up);
 }
 
-function handleTimeout() { playSound('wrong'); revealAnswer(); }
+function handleTimeout() { 
+    playSound('wrong'); 
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    revealAnswer(); 
+}
 
 function selectAnswer(e) {
     cancelAnimationFrame(timerInterval);
     document.body.classList.remove("timer-urgent");
-    const b = e.target; const isC = b.dataset.correct === "true";
+    
+    const b = e.target; 
+    const isC = b.dataset.correct === "true";
     totalTime += (Date.now() - questionStartTime) / 1000;
 
     if (isC) { 
         playSound('correct'); 
-        if (navigator.vibrate) navigator.vibrate(50);
+        if (navigator.vibrate) navigator.vibrate(50); // Kurz vibrieren
         b.style.background = '#28a745'; b.style.color = '#fff'; 
         score++; document.getElementById("score").innerText = score; 
     }
     else { 
         playSound('wrong'); 
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Doppelt vibrieren
         b.style.background = '#DC052D'; b.style.color = '#fff'; 
     }
     revealAnswer();
@@ -142,11 +164,15 @@ function revealAnswer() {
         b.disabled = true;
     });
     const q = currentQuizQuestions[currentQuestionIndex];
-    if (q.explanation) { const ex = document.getElementById("explanation-box"); ex.innerHTML = `💡 ${q.explanation}`; ex.style.display = "block"; }
+    if (q.explanation) { 
+        const ex = document.getElementById("explanation-box"); 
+        ex.innerHTML = `💡 ${q.explanation}`; 
+        ex.style.display = "block"; 
+    }
     document.getElementById("next-btn").style.display = "block";
 }
 
-// --- TOOLS ---
+// --- JOKER ---
 document.getElementById("joker-btn").addEventListener("click", (e) => {
     if (jokerUsed) return; jokerUsed = true; e.target.disabled = true; e.target.style.opacity = "0.3";
     const btns = Array.from(document.getElementById("answer-buttons").children);
@@ -154,6 +180,7 @@ document.getElementById("joker-btn").addEventListener("click", (e) => {
     wrong.forEach(b => { b.style.opacity = "0"; b.style.pointerEvents = "none"; });
 });
 
+// --- NAVIGATION ---
 document.getElementById("next-btn").addEventListener("click", () => {
     currentQuestionIndex++;
     if (currentQuestionIndex < currentQuizQuestions.length) showQuestion();
@@ -163,18 +190,35 @@ document.getElementById("next-btn").addEventListener("click", () => {
     }
 });
 
-// --- FINALE ---
+// --- FINALE & RÄNGE ---
 function showScore() {
     document.getElementById("quiz").style.display = "none";
     document.querySelector(".tools-header").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
     document.getElementById("leaderboard-section").style.display = "block";
+
     if (score > highscore) localStorage.setItem(`${STORAGE_PREFIX}Highscore_${currentDifficulty}`, score);
     
-    let m = score === 10 ? "🏆 WELTKLASSE!" : score >= 7 ? "🥈 STARK!" : "⚽ WEITER TRAINIEREN!";
-    if (score === 10) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#DC052D', '#ffffff'] });
-    
-    document.getElementById("final-result-text").innerHTML = `${m}<br>Du hast ${score}/10 Punkten!`;
+    // Gamification: Ränge vergeben
+    let rankTitle = "", rankColor = "";
+    if (score === 10) {
+        rankTitle = "🏆 TRIPLE-SIEGER / LEGENDE"; rankColor = "#FFD700";
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#DC052D', '#FFD700', '#ffffff'] });
+    } else if (score >= 7) {
+        rankTitle = "🌟 BUNDESLIGA-PROFI"; rankColor = "#004BA0";
+    } else if (score >= 4) {
+        rankTitle = "🏃 REGIONALLIGA-STAMMPLATZ"; rankColor = "#222";
+    } else {
+        rankTitle = "🌭 STADIONWURST-NIVEAU"; rankColor = "#666";
+    }
+
+    document.getElementById("final-result-text").innerHTML = `
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 5px;">Dein Rang:</div>
+        <div style="font-size: 1.4rem; font-weight: 900; color: ${rankColor}; margin-bottom: 20px;">${rankTitle}</div>
+        <div style="background: #f0f0f0; display: inline-block; padding: 12px 25px; border-radius: 15px; font-size: 1.1rem;">
+            Ergebnis: <strong>${score} / 10</strong>
+        </div>
+    `;
     renderLeaderboard();
 }
 
